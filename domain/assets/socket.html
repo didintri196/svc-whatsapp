@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Go WebSocket Tutorial</title>
+</head>
+<body>
+<div style="text-align: center;">
+    <canvas id="qrcode"></canvas>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<script type="text/javascript">
+
+</script>
+<script>
+    var qr = new QRious({
+        element: document.getElementById('qrcode'),
+    });
+
+    const socket = io("localhost:9000", {
+        autoConnect: true,
+        transports: ['websocket'],
+        query: {
+            Authorization: "123456"
+        }
+    });
+    socket.on('connect', () => {
+        console.log(socket.id);
+    })
+
+    socket.on('reply', function(msg) {
+        console.log(msg);
+    });
+
+    socket.on('notif', function(msg) {
+        console.log("NOTIF:",msg);
+    });
+
+    socket.on('qrcode', function(data) {
+        console.log(data);
+        qr.set({
+            size: 250,
+            value: data
+        });
+    });
+
+    socket.on("disconnect", function() {
+        console.log("client disconnected from server");
+    });
+    socket.emit("notice","test")
+    socket.emit("generate_qrcode")
+
+</script>
+</body>
+</html>
