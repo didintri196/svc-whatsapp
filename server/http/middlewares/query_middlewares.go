@@ -32,7 +32,8 @@ func (middleware QueryMiddleware) TokenisFilled(ctx *gin.Context) {
 func (middleware QueryMiddleware) validate(ctx *gin.Context) (err error) {
 
 	// check header
-	token, _ := ctx.GetQuery("Authorization")
+	ctx.Request.Header.Del("Origin")
+	token, _ := ctx.GetQuery("hex")
 	if token == "" {
 		return errors.New(messages.TokenIsNotProvidedMessage)
 	}

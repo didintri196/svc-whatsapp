@@ -1,10 +1,13 @@
 package usecase
 
-import "svc-whatsapp/libraries"
+import (
+	"svc-whatsapp/libraries"
+	"time"
+)
 
 type (
 	IWhatsappKeeperUsecase interface {
-		Respawn()``
+		Respawn()
 	}
 
 	WhatsappKeeperUsecase struct {
@@ -26,6 +29,7 @@ func (uc WhatsappKeeperUsecase) Respawn() {
 			// publish to worker
 			uc.WhatsappWorker.Publish(idWorker, libraries.ConnectMessage{JDID: jdid})
 		}
+		time.Sleep(1 * time.Minute)
 	}
 
 }

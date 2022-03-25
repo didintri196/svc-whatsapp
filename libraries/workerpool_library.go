@@ -160,3 +160,7 @@ func (wp *WorkerPool) GetOneIdle() (data string) {
 	}
 	return data
 }
+
+func (wp *WorkerPool) GetAllIdle() []string {
+	return wp.idle
+}

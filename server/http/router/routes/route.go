@@ -21,6 +21,6 @@ func (route WhatsappRoute) RegisterRoute() {
 	// handlers
 	whatsappHandler := handlers.NewWhatsappApiHandler(route.Handler)
 
-	// Users Route
+	// Test Produce
 	route.RouteGroup.POST("/produce", whatsappHandler.TestProduce)
 }

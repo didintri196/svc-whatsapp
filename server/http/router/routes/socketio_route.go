@@ -4,12 +4,15 @@ import (
 	"svc-whatsapp/server/http/handlers"
 	handler "svc-whatsapp/server/http/handlers/helper"
 
+	"github.com/gin-gonic/gin"
+
 	socketio "github.com/googollee/go-socket.io"
 )
 
 type WhatsappSocketioRoute struct {
 	Socket  *socketio.Server
 	Handler handler.Handler
+	Ctx     *gin.Context
 }
 
 func NewWhatsappSocketioRoute(so *socketio.Server, handler handler.Handler) WhatsappSocketioRoute {

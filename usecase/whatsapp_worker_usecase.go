@@ -21,7 +21,7 @@ func NewWhatsappWorkerUsecase(ucContract *Contract) IWhatsappWorkerUsecase {
 }
 
 func (uc WhatsappWorkerUsecase) SendMessage(payload *payload.SendMessagePayload) (err error) {
-	fmt.Println(uc.WhatsappWorker.PoolIdle())
+	fmt.Println(uc.WhatsappWorker.GetAllIdle())
 	uc.WhatsappWorker.Publish("000-0", libraries.SendMessage{
 		To:      payload.Message,
 		Message: payload.Message,

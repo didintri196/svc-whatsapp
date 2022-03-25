@@ -32,6 +32,8 @@ func main() {
 		Validator:      config.Validator,
 		StoreContainer: config.StoreContainer,
 		NsqProducer:    config.NsqProducer,
+		Postgres:       config.Postgres,
+		SecretKey:      []byte(config.SecretKey),
 	})
 
 	// Register routes

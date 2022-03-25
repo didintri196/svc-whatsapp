@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"svc-whatsapp/domain/requests"
 	handler "svc-whatsapp/server/http/handlers/helper"
+	"svc-whatsapp/usecase"
 
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
 	"go.mau.fi/whatsmeow"
@@ -20,9 +23,12 @@ type WhatsappSocketHandler struct {
 }
 
 type MyClient struct {
+	Contract       *usecase.Contract
 	WAClient       *whatsmeow.Client
 	SocketConn     socketio.Conn
+	Jid            types.JID
 	eventHandlerID uint32
+	Uuid           string
 }
 
 func NewWhatsappSocketHandler(handler handler.Handler) WhatsappSocketHandler {
@@ -38,7 +44,7 @@ func (handler WhatsappSocketHandler) OnConnect(s socketio.Conn) error {
 }
 
 func (handler WhatsappSocketHandler) OnDisconnect(s socketio.Conn, reason string) {
-	log.Println("closed", s.Context().(string))
+	log.Println("closed", s.Context())
 	//log.Println("closed contract", handlers.Contract.ID)
 }
 
@@ -59,19 +65,37 @@ func (mycli *MyClient) myEventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.AppStateSyncComplete:
 		fmt.Println("Success sync", v.Name)
-		mycli.SocketConn.Emit("notif", "Success sync")
+		deviceID, _ := mycli.Jid.Value()
+		fmt.Println("Register", deviceID, "in account uuid ->", mycli.Uuid)
+		uc := usecase.NewMDevicesUsecase(mycli.Contract)
+		err := uc.AddMDevices(&requests.MDevicesRequest{
+			MUserId: mycli.Uuid,
+			Jid:     fmt.Sprintf("%s", mycli.Jid),
+			Server:  mycli.Jid.Server,
+			Phone:   mycli.Jid.User,
+		})
+		if err != nil {
+			fmt.Println("Add Error:", err)
+		}
+		mycli.SocketConn.Emit("notif", "success_sync")
 		mycli.WAClient.Disconnect()
+	case *events.PairSuccess:
+		mycli.SocketConn.Emit("notif", "success_pair")
+		//set JID
+		mycli.Jid = v.ID
 	}
 }
 
 func (handler WhatsappSocketHandler) EventReqQrcode(s socketio.Conn) {
-	log.Println("MASUK SINI")
+	url := s.URL()
 	device := handler.Contract.StoreContainer.NewDevice()
 	cli := whatsmeow.NewClient(device, waLog.Stdout("Client", "DEBUG", true))
 	store.SetOSInfo("integrasi.in", [3]uint32{0, 1, 0})
 	MyclientConnect := &MyClient{
+		Contract:   handler.Handler.Contract,
 		WAClient:   cli,
 		SocketConn: s,
+		Uuid:       url.Query().Get("hex"),
 	}
 	MyclientConnect.register()
 	qrChan, err := cli.GetQRChannel(context.Background())
@@ -85,9 +109,9 @@ func (handler WhatsappSocketHandler) EventReqQrcode(s socketio.Conn) {
 					s.Emit("qrcode", evt.Code)
 				} else if evt.Event == "timeout" {
 					cli.Disconnect()
-					s.Emit("notif", "timeout scan")
+					s.Emit("notif", "timeout_scan")
 				} else if evt.Event == "success" {
-					s.Emit("notif", "success scan")
+					s.Emit("notif", "success_scan")
 				}
 			}
 		}()
