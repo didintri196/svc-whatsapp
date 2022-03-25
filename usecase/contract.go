@@ -4,6 +4,10 @@ import (
 	"svc-whatsapp/libraries"
 	messagebroker "svc-whatsapp/libraries/messagesbroker"
 
+	"github.com/sirupsen/logrus"
+
+	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	socketio "github.com/googollee/go-socket.io"
@@ -18,4 +22,14 @@ type Contract struct {
 	NsqProducer    messagebroker.Producer
 	NsqConsumer    messagebroker.Consumer
 	WhatsappWorker *libraries.WorkerPool
+	Postgres       *gorm.DB
+	PostgresTX     *gorm.DB
+	SecretKey      []byte
+}
+
+func NewErrorLog(useCase, specification, message string) {
+	logrus.WithFields(logrus.Fields{
+		"use_case":      useCase,
+		"specification": specification,
+	}).Error(message)
 }

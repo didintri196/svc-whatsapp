@@ -1,13 +1,16 @@
 package domain
 
 import (
+	"database/sql"
 	"net/http"
 	"os"
+	"strconv"
 	"svc-whatsapp/domain/constants"
 	"svc-whatsapp/libraries"
 	messagebroker "svc-whatsapp/libraries/messagesbroker"
 
 	socketio "github.com/googollee/go-socket.io"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 
@@ -17,13 +20,16 @@ import (
 )
 
 type Config struct {
-	App            *gin.Engine
-	Socket         *socketio.Server
-	Validator      *validator.Validate
-	StoreContainer *sqlstore.Container
-	NsqProducer    messagebroker.Producer
-	NsqConsumer    messagebroker.Consumer
-	WhatsappWorker *libraries.WorkerPool
+	App                *gin.Engine
+	Socket             *socketio.Server
+	Validator          *validator.Validate
+	SecretKey          string
+	Postgres           *gorm.DB
+	PostgresConnection *sql.DB
+	StoreContainer     *sqlstore.Container
+	NsqProducer        messagebroker.Producer
+	NsqConsumer        messagebroker.Consumer
+	WhatsappWorker     *libraries.WorkerPool
 }
 
 func LoadConfiguration() (config Config, err error) {
@@ -57,6 +63,38 @@ func LoadConfiguration() (config Config, err error) {
 	if err != nil {
 		return config, err
 	}
+
+	// postgres
+	dbLogMode, err := strconv.Atoi(os.Getenv(constants.EnvironmentLogPostgresMode))
+	if err != nil {
+		return config, err
+	}
+
+	postgresLibrary := libraries.PostgresLibrary{
+		MigrationDirectory: os.Getenv(constants.EnvironmentPostgresMigrationDirectory),
+		MigrationDialect:   os.Getenv(constants.EnvironmentPostgresMigrationDialect),
+		DBHost:             os.Getenv(constants.EnvironmentPostgresDBHost),
+		DBUser:             os.Getenv(constants.EnvironmentPostgresDBUser),
+		DBPassword:         os.Getenv(constants.EnvironmentPostgresDBPassword),
+		DBPort:             os.Getenv(constants.EnvironmentPostgresDBPort),
+		DBName:             os.Getenv(constants.EnvironmentPostgresDBName),
+		DBSSLMode:          os.Getenv(constants.EnvironmentPostgresDBSSLMode),
+		LogMode:            dbLogMode,
+	}
+
+	config.Postgres, config.PostgresConnection, err = postgresLibrary.ConnectAndValidate()
+
+	if err != nil {
+		return config, err
+	}
+
+	//postgres migrate
+	if err = postgresLibrary.Migrate(config.PostgresConnection); err != nil {
+		return config, err
+	}
+
+	// load secret key JWT
+	config.SecretKey = os.Getenv(constants.EnvironmentJWTSecretKey)
 
 	// whatsapp-worker
 	config.WhatsappWorker = libraries.NewWorkerPool(10, config.StoreContainer)
