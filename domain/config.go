@@ -97,7 +97,7 @@ func LoadConfiguration() (config Config, err error) {
 	config.SecretKey = os.Getenv(constants.EnvironmentJWTSecretKey)
 
 	// whatsapp-worker
-	config.WhatsappWorker = libraries.NewWorkerPool(10, config.StoreContainer)
+	config.WhatsappWorker = libraries.NewWorkerPool(10, config.StoreContainer, config.Postgres)
 
 	return config, err
 }
