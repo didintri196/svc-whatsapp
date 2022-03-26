@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"runtime"
 	"svc-whatsapp/domain"
-	"svc-whatsapp/libraries"
 	"svc-whatsapp/server/consumer/handlers"
 	"svc-whatsapp/server/consumer/router"
 	"svc-whatsapp/usecase"
@@ -26,6 +25,7 @@ func main() {
 	// Insert Handler Contract
 	var handler = handlers.NewHandler(&usecase.Contract{
 		Validator:      config.Validator,
+		Postgres:       config.Postgres,
 		StoreContainer: config.StoreContainer,
 		NsqProducer:    config.NsqProducer,
 		NsqConsumer:    config.NsqConsumer,
@@ -36,7 +36,7 @@ func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	handler.Contract.WhatsappWorker.Respawn(ctx)
-	handler.Contract.WhatsappWorker.Publish("000-0", libraries.ConnectMessage{JDID: "6285155075517.0:11@s.whatsapp.net"})
+	//handler.Contract.WhatsappWorker.Publish("000-0", libraries.ConnectMessage{JDID: "6285155075517.0:11@s.whatsapp.net"})
 
 	// Register routes
 	router.NewConsumer(handler).Register()

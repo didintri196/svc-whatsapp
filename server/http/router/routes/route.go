@@ -23,4 +23,5 @@ func (route WhatsappRoute) RegisterRoute() {
 
 	// Test Produce
 	route.RouteGroup.POST("/produce", whatsappHandler.TestProduce)
+	route.RouteGroup.POST("/send-message", whatsappHandler.SendMessage)
 }

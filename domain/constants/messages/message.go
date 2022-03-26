@@ -2,6 +2,7 @@ package messages
 
 const (
 	SuccessMessage                           = "success"
+	QueueMessage                             = "message has been queue"
 	FailedMessage                            = "failed"
 	TokenIsNotProvidedMessage                = "token is not provided, please requests with token"
 	TokenIsNotValidMessage                   = "token is not valid"

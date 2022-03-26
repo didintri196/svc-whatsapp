@@ -19,6 +19,7 @@ type (
 	IMDevicesUsecase interface {
 		AddMDevices(req *requests.MDevicesRequest) (err error)
 		FilterMDevices(ctx *gin.Context, filter *requests.FilterRequest) (presenter presenters.ArrayFilterDevicesPresenter, meta presenters.MetaResponsePresenter, err error)
+		ReadDevicesNotConnectedWorker() (presenter presenters.DevicesPresenter, err error)
 		//ReadByID(id string) (presenter presenters.DetailMDevicesPresenter, err error)
 		//UpdateByID(id string, req *requests.MDevicesRequest) (err error)
 		//Delete(id string) (err error)
@@ -84,6 +85,21 @@ func (uc MDevicesUsecase) FilterMDevices(ctx *gin.Context, filter *requests.Filt
 	meta = presenters.SetPaginationResponse(page, limit, int(total))
 
 	return presenter, meta, err
+}
+
+func (uc MDevicesUsecase) ReadDevicesNotConnectedWorker() (presenter presenters.DevicesPresenter, err error) {
+
+	// read device not connected worker pool
+	model := models.NewMDevices()
+	repo := repositories.NewMDevicesRepository(uc.Postgres)
+	if err = repo.ReadNotConnectWorker(model); err != nil {
+		NewErrorLog("MDevicesUsecase.ReadDevicesNotConnectedWorker", "repo.ReadNotConnectWorker", err.Error())
+		return presenter, err
+	}
+
+	presenter = presenters.NewDevicesPresenter().Build(model)
+
+	return presenter, err
 }
 
 //func (uc MDevicesUsecase) ReadByID(id string) (presenter presenters.DetailMDevicesPresenter, err error) {

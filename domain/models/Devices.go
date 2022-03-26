@@ -4,7 +4,7 @@ import "time"
 
 type Devices struct {
 	ID        string    `gorm:"column:id"`
-	MUserId   string    `gorm:"column:M_User_id"`
+	MUserId   string    `gorm:"column:m_user_id"`
 	Jid       string    `gorm:"column:jid"`
 	Server    string    `gorm:"column:server"`
 	Phone     string    `gorm:"column:phone"`

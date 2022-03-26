@@ -1,11 +1,7 @@
 package payload
 
 type SendMessagePayload struct {
-	To      string `json:"to"`
-	Message string `json:"message"`
-}
-
-type ConnectMessagePayload struct {
+	ApiKey  string `json:"hex"`
 	To      string `json:"to"`
 	Message string `json:"message"`
 }
